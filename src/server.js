@@ -6,7 +6,6 @@ import { dirname, join } from "path";
 import { connectDB, sequelize } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 
-// Fix for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
