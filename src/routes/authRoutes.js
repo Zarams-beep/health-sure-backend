@@ -3,33 +3,34 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
-import User from "../models/user.js";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import User from "../models/user.js"; // Verified correct path
 
-// Get __dirname in ES module
+// Configuration for file paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const UPLOADS_PATH = path.join(process.cwd(), 'uploads'); // Production-safe path
 
-const uploadsDir = path.join(__dirname, "../uploads");
+// Debugging logs
+console.log("Current directory:", process.cwd());
+console.log("Uploads path:", UPLOADS_PATH);
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Ensure uploads directory exists
+if (!fs.existsSync(UPLOADS_PATH)) {
+  fs.mkdirSync(UPLOADS_PATH, { recursive: true });
 }
 
 const router = express.Router();
 
-// Serve uploaded images as static files
-router.use("/uploads", express.static(uploadsDir));
-
-// Improved Multer Config
+// Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir);
+    cb(null, UPLOADS_PATH);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname)); // e.g. "123456789-abcd.jpg"
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
 
@@ -45,93 +46,114 @@ const upload = multer({
   },
 });
 
-// ✅ Improved User Signup Route
-router.post("/sign-up", upload.single("image"), async (req, res) => {
-  const { fullName, email, password } = req.body;
-  
-  try {
-    // Validate required fields
-    if (!fullName || !email || !password) {
-      // Cleanup uploaded file if validation fails
-      if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Check if user exists (with automatic file cleanup)
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(409).json({ message: "Email already registered" });
-    }
-
-    // Hash password with stronger cost factor
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user (store filename only)
-    const newUser = await User.create({
-      fullName,
-      email,
-      password: hashedPassword,
-      image: req.file ? req.file.filename : null, // Store filename only
-    });
-
-    // Generate token
-    const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { 
-      expiresIn: "1h" 
-    });
-
-    // Return sanitized user data with constructed URL
-    const userResponse = {
-      id: newUser.id,
-      fullName: newUser.fullName,
-      email: newUser.email,
-      image: req.file ? `/uploads/${req.file.filename}` : null // Construct URL here
-    };
-
-    res.status(201).json({ 
-      message: "Signup successful", 
-      token,
-      user: userResponse 
-    });
-
-  } catch (error) {
-    // Cleanup uploaded file on any error
-    if (req.file) fs.unlinkSync(req.file.path);
-    
-    console.error("Signup Error:", error);
-    res.status(500).json({ 
-      message: "Server error during signup",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined
-    });
+// Enhanced error handling middleware
+const handleErrors = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: err.message });
   }
-});
+  if (err) {
+    return res.status(500).json({ message: "Server error" });
+  }
+  next();
+};
 
-// ✅ User Login Route (unchanged, already good)
+// User Signup Route
+router.post("/sign-up", 
+  upload.single("image"),
+  handleErrors,
+  async (req, res) => {
+    const { fullName, email, password } = req.body;
+    
+    try {
+      // Validation
+      if (!fullName?.trim() || !email?.trim() || !password?.trim()) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Existing user check
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res.status(409).json({ message: "Email already registered" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      // Create user
+      const newUser = await User.create({
+        fullName: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        password: hashedPassword,
+        image: req.file?.filename || null,
+      });
+
+      // Generate JWT
+      const token = jwt.sign(
+        { id: newUser.id }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: "1h" }
+      );
+
+      // Response
+      res.status(201).json({
+        message: "Signup successful",
+        token,
+        user: {
+          id: newUser.id,
+          fullName: newUser.fullName,
+          email: newUser.email,
+          image: req.file ? `/uploads/${req.file.filename}` : null
+        }
+      });
+
+    } catch (error) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      console.error("Signup Error:", error);
+      res.status(500).json({
+        message: "Server error",
+        error: process.env.NODE_ENV === "development" ? error.message : undefined
+      });
+    }
+  }
+);
+
+// User Login Route
 router.post("/log-in", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ 
+      where: { email: email.trim().toLowerCase() } 
+    });
+    
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(
+      { id: user.id }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "1h" }
+    );
 
-    res.json({ 
-      message: "Login successful", 
-      token, 
+    res.json({
+      message: "Login successful",
+      token,
       user: {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
         image: user.image ? `/uploads/${user.image}` : null
-      } 
+      }
     });
+
   } catch (error) {
-    res.status(500).json({ 
-      message: "Server error", 
+    console.error("Login Error:", error);
+    res.status(500).json({
+      message: "Server error",
       error: process.env.NODE_ENV === "development" ? error.message : undefined
     });
   }
