@@ -8,7 +8,10 @@ const BasicInfo = sequelize.define('BasicInfo', {
     allowNull: false,
     unique: true,
     references: {
-      model: 'Users', // Matches User model's table name
+      model: { 
+        tableName: 'Users', // Must match exactly
+        schema: 'public'
+      },
       key: 'id'
     }
   },
