@@ -13,18 +13,42 @@ const __dirname = dirname(__filename);
 dotenv.config();
 const app = express();
 
-app.use(cors());
+// 🔥 CORS FIX - Add this configuration
+const corsOptions = {
+  origin: ['http://localhost:3000'], // Add your frontend URLs
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204
+};
+app.use(cors(corsOptions)); // Changed this line
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use("/uploads", express.static(join(__dirname, "uploads")));
 app.use("/auth", authRoutes);
-app.use("/:userId/manage-health", healthEditRoutes);
+
+// 🔥 ROUTE FIX - Add /users prefix
+app.use("/users/:userId/manage-health", healthEditRoutes); // Changed this line
 
 connectDB();
 sequelize.sync({ alter: true })
     .then(() => console.log("Tables synchronized"))
     .catch((err) => console.error("Error syncing tables:", err));
+
+// 🔥 ERROR HANDLING - Add these at the end
+app.use((err, req, res, next) => {
+  console.error('Global Error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
 
 app.get("/", (req, res) => {
     res.send("HealthSure Backend Running with PostgreSQL");
