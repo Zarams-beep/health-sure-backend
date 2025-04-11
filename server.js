@@ -15,7 +15,7 @@ const app = express();
 
 // 🔥 CORS FIX - Add this configuration
 const corsOptions = {
-  origin: ['http://localhost:3000'], // Add your frontend URLs
+  origin: ['http://localhost:3000', 'https://health-sure-nine.vercel.app/'], 
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204

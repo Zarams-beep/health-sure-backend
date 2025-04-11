@@ -27,7 +27,7 @@ const User = sequelize.define("User", {
 }, { 
     timestamps: true,
     modelName: 'User',
-    tableName: 'Users' // Explicit table name
+    tableName: 'Users'
 });
 
 // associates

@@ -3,7 +3,9 @@ import BasicInfo from '../models/basicInfo.js';
 import User from '../models/user.js';
 
 export const updateBasicInfo = async (req, res) => {
+  console.log("Starting DB transaction");
   const transaction = await sequelize.transaction();
+  console.log("Upserting basic info...");
   try {
     const userId = req.params.userId;
     const {

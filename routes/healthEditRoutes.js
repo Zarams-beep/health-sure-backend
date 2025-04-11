@@ -1,6 +1,8 @@
-// routes/healthEditRoutes.js
 import express from "express";
-const router = express.Router();
+
+// 🔥 This is the important change
+const router = express.Router({ mergeParams: true });
+
 import { protect } from "../middleware/authmiddleware.js";
 import { updateBasicInfo } from "../controller/basicInfoController.js";
 import { updateHealthStatus } from "../controller/healthStatusController.js";

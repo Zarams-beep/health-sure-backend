@@ -34,7 +34,7 @@ const BasicInfo = sequelize.define('BasicInfo', {
     validate: { isEmail: true }
   }
 }, {
-  freezeTableName: true, // Prevent pluralization
+  freezeTableName: true, 
   timestamps: true
 });
 
