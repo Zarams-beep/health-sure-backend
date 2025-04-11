@@ -4,10 +4,7 @@ import User from '../models/user.js';
 
 export const updateBasicInfo = async (req, res) => {
   console.log("Starting DB transaction");
-  const transaction = await sequelize.transaction({
-    isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED,
-    timeout: 10000 // 10 second timeout
-  });
+  const transaction = await sequelize.transaction();
   console.log("Upserting basic info...");
   try {
     const userId = req.params.userId;

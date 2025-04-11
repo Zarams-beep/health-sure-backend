@@ -12,22 +12,24 @@ dotenv.config();
 
 const app = express();
 
+// In server.js - Update CORS config
 const corsOptions = {
-  origin: function (origin, callback) {
-    const allowed = [
+  origin: (origin, callback) => {
+    const allowedOrigins = [
       'http://localhost:3000',
       'https://health-sure-nine.vercel.app'
     ];
-    console.log("Incoming origin:", origin);
-    if (!origin || allowed.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Blocked by CORS'));
+      callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 // Apply to all routes
