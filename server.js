@@ -31,7 +31,7 @@ app.use("/uploads", express.static(join(__dirname, "uploads")));
 
 // Routes
 app.use("/auth", authRoutes);
-app.use("/users/:userId/manage-health", healthEditRoutes); // ✅ dynamic params preserved
+app.use("/:userId/manage-health", healthEditRoutes); // ✅ dynamic params preserved
 
 // Connect DB
 connectDB();
