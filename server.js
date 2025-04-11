@@ -12,15 +12,29 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration
+// In server.js - Update CORS config
 const corsOptions = {
-  origin: ['http://localhost:3000', 'https://health-sure-nine.vercel.app'],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://health-sure-nine.vercel.app'
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 204,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
+
+// Apply to all routes
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options('*', cors(corsOptions)); // Handle preflight
 
 // Directory setup
 const __filename = fileURLToPath(import.meta.url);
@@ -33,7 +47,7 @@ app.use("/uploads", express.static(join(__dirname, "uploads")));
 
 // Routes
 app.use("/auth", authRoutes);
-app.use("/:userId/manage-health", healthEditRoutes);
+app.use("users/:userId/manage-health", healthEditRoutes);
 
 // DB Connection
 connectDB();
