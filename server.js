@@ -47,7 +47,7 @@ app.use("/uploads", express.static(join(__dirname, "uploads")));
 
 // Routes
 app.use("/auth", authRoutes);
-app.use("users/:userId/manage-health", healthEditRoutes);
+app.use("/users/:userId/manage-health", healthEditRoutes);
 
 // DB Connection
 connectDB();
