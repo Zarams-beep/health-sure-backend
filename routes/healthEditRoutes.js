@@ -16,10 +16,10 @@ router.use(protect);
 
 // Health Profile Management Endpoints
 router.post("/basic-info", updateBasicInfo);
-// router.post("/health-status", updateHealthStatus);
-// router.post("/medical-history", updateMedicalHistory);
-// router.post("/treatment-info", updateTreatmentInfo);
-// router.post("/lab-results", updateLabResults);
-// router.post("/notes", updateNotes);
+router.post("/health-status", updateHealthStatus);
+router.post("/medical-history", updateMedicalHistory);
+router.post("/treatment-info", updateTreatmentInfo);
+router.post("/lab-results", updateLabResults);
+router.post("/notes", updateNotes);
 
 export default router;
