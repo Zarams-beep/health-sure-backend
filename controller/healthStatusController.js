@@ -10,18 +10,22 @@ export const updateHealthStatus = async (req, res) => {
 
     const {
       healthCondition,
+      vitalSigns = {},
+      allergies = []
+    } = req.body;
+
+    const {
       bloodPressure,
       heartRate,
       temperature,
       sugar,
       oxygen,
       cholesterol,
-      BMI,
-      allergies
-    } = req.body;
+      BMI
+    } = vitalSigns;
 
     // Validate required fields
-    if (!healthCondition || !bloodPressure) {
+    if (!healthCondition || bloodPressure === undefined) {
       await transaction.rollback();
       return res.status(400).json({
         success: false,
@@ -39,41 +43,26 @@ export const updateHealthStatus = async (req, res) => {
       });
     }
 
-    // Check if HealthStatus exists
     const existingStatus = await HealthStatus.findOne({ where: { userId }, transaction });
 
-    const safeParseFloat = (val) => val !== undefined && val !== '' ? parseFloat(val) : null;
-
     let healthStatus;
-    if (existingStatus) {
-      // Update existing
-      await existingStatus.update({
-        healthCondition,
-        bloodPressure: safeParseFloat(bloodPressure),
-        heartRate: safeParseFloat(heartRate),
-        temperature: safeParseFloat(temperature),
-        sugar: safeParseFloat(sugar),
-        oxygen: safeParseFloat(oxygen),
-        cholesterol: safeParseFloat(cholesterol),
-        BMI: safeParseFloat(BMI),
-        allergies: allergies || []
-      }, { transaction });
+    const vitalData = {
+      healthCondition,
+      bloodPressure,
+      heartRate,
+      temperature,
+      sugar,
+      oxygen,
+      cholesterol,
+      BMI,
+      allergies
+    };
 
+    if (existingStatus) {
+      await existingStatus.update(vitalData, { transaction });
       healthStatus = existingStatus;
     } else {
-      // Create new
-      healthStatus = await HealthStatus.create({
-        userId,
-        healthCondition,
-        bloodPressure: safeParseFloat(bloodPressure),
-        heartRate: safeParseFloat(heartRate),
-        temperature: safeParseFloat(temperature),
-        sugar: safeParseFloat(sugar),
-        oxygen: safeParseFloat(oxygen),
-        cholesterol: safeParseFloat(cholesterol),
-        BMI: safeParseFloat(BMI),
-        allergies: allergies || []
-      }, { transaction });
+      healthStatus = await HealthStatus.create({ userId, ...vitalData }, { transaction });
     }
 
     await transaction.commit();
