@@ -12,11 +12,25 @@ const LabResult = sequelize.define('LabResult', {
   },
   testResults: {
     type: DataTypes.JSONB,
-    defaultValue: []
+    defaultValue: [],
+    validate: {
+      isValidTestResults(value) {
+        if (value && !Array.isArray(value)) {
+          throw new Error('testResults must be an array');
+        }
+      }
+    }
   },
   medicalReports: {
     type: DataTypes.JSONB,
-    defaultValue: []
+    defaultValue: [],
+    validate: {
+      isValidMedicalReports(value) {
+        if (value && !Array.isArray(value)) {
+          throw new Error('medicalReports must be an array');
+        }
+      }
+    }
   }
 }, {
   freezeTableName: true,
