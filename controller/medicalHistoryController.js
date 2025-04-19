@@ -2,14 +2,17 @@ import MedicalHistory from '../models/medicalHistory.js';
 import User from '../models/user.js';
 import { sequelize } from '../config/db.js';
 
+/**
+ * 📤 Create or Update Medical History
+ */
 export const updateMedicalHistory = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const userId = req.params.userId;
+    const { userId } = req.params;
     const { pastDiagnoses, surgeries, medications, familyHistory } = req.body;
 
-    // Validate user exists
+    // 🔍 Step 1: Validate user exists
     const user = await User.findByPk(userId, { transaction });
     if (!user) {
       await transaction.rollback();
@@ -19,7 +22,7 @@ export const updateMedicalHistory = async (req, res) => {
       });
     }
 
-    // Validate medications structure
+    // 💊 Step 2: Validate medications format
     if (medications && !Array.isArray(medications)) {
       await transaction.rollback();
       return res.status(400).json({
@@ -32,33 +35,16 @@ export const updateMedicalHistory = async (req, res) => {
       await transaction.rollback();
       return res.status(400).json({
         success: false,
-        message: 'Each medication must include name and dosage'
+        message: 'Each medication must include a name and dosage'
       });
     }
 
-    // Check if medical history exists
+    // 🔁 Step 3: Create or update medical history
     const existingHistory = await MedicalHistory.findOne({ where: { userId }, transaction });
 
-    let medicalHistory;
-
-    if (existingHistory) {
-      await existingHistory.update({
-        pastDiagnoses,
-        surgeries,
-        medications,
-        familyHistory
-      }, { transaction });
-
-      medicalHistory = existingHistory;
-    } else {
-      medicalHistory = await MedicalHistory.create({
-        userId,
-        pastDiagnoses,
-        surgeries,
-        medications,
-        familyHistory
-      }, { transaction });
-    }
+    const medicalHistory = existingHistory
+      ? await existingHistory.update({ pastDiagnoses, surgeries, medications, familyHistory }, { transaction })
+      : await MedicalHistory.create({ userId, pastDiagnoses, surgeries, medications, familyHistory }, { transaction });
 
     await transaction.commit();
 
@@ -70,7 +56,7 @@ export const updateMedicalHistory = async (req, res) => {
 
   } catch (error) {
     await transaction.rollback();
-    console.error('Medical history error:', error);
+    console.error('❌ Medical history error:', error);
 
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
@@ -83,6 +69,48 @@ export const updateMedicalHistory = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * 📥 Get Medical History
+ */
+export const getMedicalHistory = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // 🔍 Step 1: Check if user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // 📦 Step 2: Fetch medical history
+    const medicalHistory = await MedicalHistory.findOne({ where: { userId } });
+
+    if (!medicalHistory) {
+      return res.status(404).json({
+        success: false,
+        message: 'Medical history not found for this user'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: medicalHistory
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching medical history:', error);
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching medical history',
       error: error.message
     });
   }

@@ -2,95 +2,130 @@ import LabResult from '../models/labResult.js';
 import User from '../models/user.js';
 import { sequelize } from '../config/db.js';
 
+/**
+ * 📤 Create or Update Lab Results
+ */
 export const updateLabResults = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const userId = req.params.userId;
+    const { userId } = req.params;
     const { testResults, medicalReports } = req.body;
 
-    // Validate user exists
+    // 🔍 Step 1: Check if user exists
     const user = await User.findByPk(userId, { transaction });
     if (!user) {
       await transaction.rollback();
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: 'User not found'
       });
     }
 
-    // Early return if no data to update
-    if (!testResults && !medicalReports) {
-      await transaction.rollback();
-      return res.status(400).json({
-        success: false,
-        message: 'No data provided to update',
-      });
-    }
+    // 🧪 Step 2: Clean up test results
+    const processedTestResults = testResults?.map(test => ({
+      testName: test.testName || '',
+      result: test.result || '',
+      date: test.date === "none" || !test.date ? '' : new Date(test.date).toISOString()
+    }));
 
-    // Prepare data for saving
-    const dataToSave = {
-      userId,
-      ...(testResults && { 
-        testResults: testResults
-          .filter(t => t.testName || t.result || t.date) // Filter out empty entries
-          .map(t => ({
-            ...t,
-            ...(t.date && { date: new Date(t.date) }) // Format date if exists
-          }))
-      }),
-      ...(medicalReports && { 
-        medicalReports: medicalReports.filter(r => r.title || r.url) // Filter out empty entries
-      })
-    };
+    // 📄 Step 3: Clean up medical reports
+    const processedMedicalReports = medicalReports?.map(report => ({
+      title: report.title || '',
+      url: report.url || ''
+    }));
 
-    // Find or create lab result
-    const [labResult, created] = await LabResult.findOrCreate({
-      where: { userId },
-      defaults: dataToSave,
-      transaction
+    // 🔁 Step 4: Create or update lab record
+    const existingLabResults = await LabResult.findOne({ 
+      where: { userId }, 
+      transaction 
     });
 
-    if (!created) {
-      await labResult.update(dataToSave, { transaction });
-    }
+    const labResult = existingLabResults
+      ? await existingLabResults.update({
+          testResults: processedTestResults,
+          medicalReports: processedMedicalReports
+        }, { transaction })
+      : await LabResult.create({
+          userId,
+          testResults: processedTestResults,
+          medicalReports: processedMedicalReports
+        }, { transaction });
 
     await transaction.commit();
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      message: created ? 'Lab results created successfully' : 'Lab results updated successfully',
+      message: existingLabResults ? 'Lab results updated successfully' : 'Lab results created successfully',
       data: labResult
     });
 
   } catch (error) {
     await transaction.rollback();
-    
-    console.error('Error processing lab results:', error);
+    console.error('❌ Lab results update error:', error);
 
-    // Handle validation errors
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
         success: false,
-        message: 'Validation failed',
-        errors: error.errors.map(e => ({
-          field: e.path,
-          message: e.message
-        }))
+        message: 'Validation error',
+        errors: error.errors.map(e => e.message)
       });
     }
 
-    // Handle invalid date format
     if (error.message.includes('Invalid date')) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid date format provided'
+        message: 'Invalid date format. Please use YYYY-MM-DD format or "none"'
       });
     }
 
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * 📥 Get Lab Results
+ */
+export const getLabResults = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // 🔍 Step 1: Confirm user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // 📦 Step 2: Fetch lab results
+    const labResult = await LabResult.findOne({ where: { userId } });
+
+    if (!labResult) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lab results not found for this user'
+      });
+    }
+
+    // ✅ Step 3: Respond with data
+    res.status(200).json({
+      success: true,
+      data: labResult
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching lab results:', error);
+
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching lab results',
+      error: error.message
     });
   }
 };
