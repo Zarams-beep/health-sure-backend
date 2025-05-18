@@ -7,7 +7,7 @@ const HealthStatus = sequelize.define('HealthStatus', {
     allowNull: false,
     unique: true,
     references: {
-      model: 'Users',
+     model: 'Users',
       key: 'id'
     }
   },

@@ -7,8 +7,7 @@ import { sequelize } from '../config/db.js';
  */
 export const updateBasicInfo = async (req, res) => {
   const transaction = await sequelize.transaction();
-  console.log("🚀 Starting DB transaction for Basic Info");
-
+ 
   try {
     const { userId } = req.params;
     const {

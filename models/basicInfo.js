@@ -33,9 +33,6 @@ const BasicInfo = sequelize.define('BasicInfo', {
     type: DataTypes.STRING,
     validate: { isEmail: true }
   }
-}, {
-  freezeTableName: true, 
-  timestamps: true
 });
 
 // Association
