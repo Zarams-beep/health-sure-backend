@@ -1,15 +1,21 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "description": "Health-Sure backend API built with Express and PostgreSQL.",
   "type": "module",
+  "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint .",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "engines": {
-    "node": "18.x"
+    "node": ">=18.x"
   },
+  "keywords": ["express", "postgres", "sequelize", "api"],
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

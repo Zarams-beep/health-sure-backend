@@ -12,7 +12,8 @@ dotenv.config();
 
 const app = express();
 
-// In server.js - Update CORS config
+// In server.js - Update CORS config Cross-Origin Resource Sharing
+// This makes sure only your frontend apps (localhost:3000 during dev, and your deployed Vercel site) can talk to the backend.
 const corsOptions = {
   origin: (origin, callback) => {
     const allowedOrigins = [
@@ -37,10 +38,12 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Handle preflight
 
 // Directory setup
+// Because ES modules don’t have __dirname by default, this helps figure out the current folder path.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Middleware
+// Middleware = functions that run before your routes (like body parsing, file serving, etc.).
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/uploads", express.static(join(__dirname, "uploads")));
