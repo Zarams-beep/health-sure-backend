@@ -6,6 +6,7 @@ import path from "path";
 import User from "../models/user.js";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import rateLimit from "express-rate-limit";  // ✅ import rate limiter
 
 // Get __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -22,14 +23,27 @@ const router = express.Router();
 // Serve uploaded images as static files
 router.use("/uploads", express.static(uploadsDir));
 
-// Improved Multer Config
+// ✅ Rate limiters
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // max 5 requests per minute per IP
+  message: "Too many login attempts. Please try again after a minute."
+});
+
+const signupLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 3, // max 3 signups per IP per 10 minutes
+  message: "Too many signup attempts. Please try again later."
+});
+
+// ✅ Multer Config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname)); // e.g. "123456789-abcd.jpg"
+    cb(null, uniqueSuffix + path.extname(file.originalname)); 
   },
 });
 
@@ -45,59 +59,46 @@ const upload = multer({
   },
 });
 
-// ✅ Improved User Signup Route
-router.post("/sign-up", upload.single("image"), async (req, res) => {
+// ✅ User Signup Route (with limiter)
+router.post("/sign-up", signupLimiter, upload.single("image"), async (req, res) => {
   const { fullName, email, password } = req.body;
   
   try {
-    // Validate required fields
     if (!fullName || !email || !password) {
-      // Cleanup uploaded file if validation fails
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Check if user exists (with automatic file cleanup)
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(409).json({ message: "Email already registered" });
     }
 
-    // Hash password with stronger cost factor
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user (store filename only)
     const newUser = await User.create({
       fullName,
       email,
       password: hashedPassword,
-      image: req.file ? req.file.filename : null, // Store filename only
+      image: req.file ? req.file.filename : null,
     });
 
-    // Generate token
-    const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { 
-      expiresIn: "1h" 
-    });
-
-    // Return sanitized user data with constructed URL
-    const userResponse = {
-      id: newUser.id,
-      fullName: newUser.fullName,
-      email: newUser.email,
-      image: req.file ? `/uploads/${req.file.filename}` : null // Construct URL here
-    };
+    const token = jwt.sign({ id: newUser.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.status(201).json({ 
       message: "Signup successful", 
       token,
-      user: userResponse 
+      user: {
+        id: newUser.id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        image: req.file ? `/uploads/${req.file.filename}` : null
+      }
     });
 
   } catch (error) {
-    // Cleanup uploaded file on any error
     if (req.file) fs.unlinkSync(req.file.path);
-    
     console.error("Signup Error:", error);
     res.status(500).json({ 
       message: "Server error during signup",
@@ -106,8 +107,8 @@ router.post("/sign-up", upload.single("image"), async (req, res) => {
   }
 });
 
-// ✅ User Login Route (unchanged, already good)
-router.post("/log-in", async (req, res) => {
+// ✅ User Login Route (with limiter)
+router.post("/log-in", loginLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   try {

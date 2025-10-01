@@ -42,7 +42,6 @@ app.options('*', cors(corsOptions)); // Handle preflight
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Middleware
 // Middleware = functions that run before your routes (like body parsing, file serving, etc.).
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
