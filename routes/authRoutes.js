@@ -6,7 +6,7 @@ import path from "path";
 import User from "../models/user.js";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import rateLimit from "express-rate-limit";  // ✅ import rate limiter
+import rateLimit from "express-rate-limit";
 
 // Get __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
