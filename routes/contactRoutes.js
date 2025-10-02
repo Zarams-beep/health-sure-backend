@@ -9,17 +9,22 @@ router.post("/contact-us", async (req, res) => {
   try {
     // ✅ Setup transporter for Gmail
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: Number(process.env.SMTP_PORT) === 465,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+    rejectUnauthorized: false,
+  },
     });
 
     // ✅ Email to YOU (admin)
     await transporter.sendMail({
-      from: email, // user’s email (so you see who sent it)
-      to: process.env.EMAIL_USER, // your business Gmail
+      from: email,
+      to: process.env.EMAIL_USER,
       subject: `New Contact Form Submission: ${subject}`,
       text: `
         📩 New Contact Form Submission
