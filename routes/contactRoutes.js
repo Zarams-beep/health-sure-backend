@@ -13,7 +13,7 @@ router.post("/contact-us", async (req, res) => {
   port: Number(process.env.SMTP_PORT) || 587,
   secure: Number(process.env.SMTP_PORT) === 465,
       auth: {
-        user: process.env.EMAIL_USER,
+        user: process.env.EMAIL_ADMIN,
         pass: process.env.EMAIL_PASS,
       },
       tls: {
@@ -23,7 +23,7 @@ router.post("/contact-us", async (req, res) => {
 
     // ✅ Email to YOU (admin)
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: process.env.EMAIL_ADMIN,
       to: email,
       subject: `New Contact Form Submission: ${subject}`,
       text: `
@@ -40,7 +40,7 @@ router.post("/contact-us", async (req, res) => {
 
     // ✅ Auto-reply to User
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: process.env.EMAIL_ADMIN,
       to: email, // user’s email
       subject: "We received your message!",
       text: `Hello ${firstName},
