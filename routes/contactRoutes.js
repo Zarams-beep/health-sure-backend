@@ -7,7 +7,6 @@ router.post("/contact-us", async (req, res) => {
   const { firstName, lastName, email, phoneNumber, subject, message } = req.body;
 
   try {
-    // ✅ Setup transporter for Gmail
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT) || 587,
