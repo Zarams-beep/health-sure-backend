@@ -6,7 +6,6 @@ import { dirname, join } from "path";
 import { connectDB, sequelize } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import healthEditRoutes from "./routes/healthEditRoutes.js";
-import contactRoutes from "./routes/contactRoutes.js"; 
 
 // Setup environment
 dotenv.config();
@@ -51,7 +50,6 @@ app.use("/uploads", express.static(join(__dirname, "uploads")));
 // Routes
 app.use("/auth", authRoutes);
 app.use("/dashboard/:userId/manage-health", healthEditRoutes);
-app.use("/", contactRoutes);
 
 // DB Connection
 connectDB();
