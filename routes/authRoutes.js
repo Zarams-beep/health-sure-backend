@@ -8,6 +8,8 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import rateLimit from "express-rate-limit";
 import redis from "../config/redis.js";
+import passport from "passport";
+import "../config/passport.js";
 
 // Get __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -164,4 +166,26 @@ router.post("/logout",async(req,res)=>{
     res.status(500).json({ message: "Server error during logout" });
   }
 })
+
+// Google login route
+router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+router.get("/google/callback",
+  passport.authenticate("google", { session: false }),
+  (req, res) => {
+    // Redirect to frontend with token
+    res.redirect(`https://your-frontend.com/dashboard?token=${req.user.token}`);
+  }
+);
+
+
+// GitHub login route
+router.get("/github", passport.authenticate("github", { scope: ["user:email"] }));
+
+router.get("/github/callback",
+  passport.authenticate("github", { session: false }),
+  (req, res) => {
+    res.redirect(`https://your-frontend.com/dashboard?token=${req.user.token}`);
+  }
+);
 export default router;
