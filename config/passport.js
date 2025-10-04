@@ -30,8 +30,8 @@ passport.use(new GoogleStrategy({
 }));
 
 passport.use(new GitHubStrategy({
-  clientID: process.env.GITHUB_CLIENT_ID,
-  clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  clientID: process.env.GITHUB_ID,
+  clientSecret: process.env.GITHUB_SECRET,
   callbackURL: "/auth/github/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
