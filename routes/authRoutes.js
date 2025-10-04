@@ -7,6 +7,7 @@ import User from "../models/user.js";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import rateLimit from "express-rate-limit";
+import redis from "../config/redis.js";
 
 // Get __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -138,4 +139,29 @@ router.post("/log-in", loginLimiter, async (req, res) => {
   }
 });
 
+
+// User Log out Route
+router.post("/logout",async(req,res)=>{
+  const authHeader = req.headers.authorization;
+  if(!authHeader || !authHeader.startsWith("Bearer ")){
+    return res.status(400).json({ message: "No token provided" });
+  }
+  const token = authHeader.split(" ")[1];
+  try{
+    const decoded = jwt.decode(token);
+    if (!decoded || !decoded.exp){
+      return res.status(400).json({ message: "Invalid token" });
+    }
+
+    const ttl = decoded.exp - Math.floor(Date.now()/1000);
+    if (ttl > 0){
+      await redis.set(`blacklist:${token}`, "revoked", "EX", ttl);
+    }
+
+     res.json({ message: "Logout successful" });
+  } catch (err){
+     console.error("Logout error:", err);
+    res.status(500).json({ message: "Server error during logout" });
+  }
+})
 export default router;
