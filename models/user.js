@@ -22,7 +22,7 @@ const User = sequelize.define("User", {
     },
     password: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
     }
 }, { 
     timestamps: true,

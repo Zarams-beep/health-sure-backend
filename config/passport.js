@@ -8,27 +8,32 @@ passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: "https://health-sure-backend.onrender.com/auth/google/callback"
-
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    // Check DB for user
-    let user = await User.findOne({ where: { email: profile.emails[0].value } });
+    const email = profile.emails && profile.emails.length > 0 
+      ? profile.emails[0].value 
+      : `${profile.id}@google-oauth.fake`; // fallback if no email
+
+    const image = profile.photos && profile.photos.length > 0 
+      ? profile.photos[0].value 
+      : null;
+
+    let user = await User.findOne({ where: { email } });
     if (!user) {
       user = await User.create({
-        fullName: profile.displayName,
-        email: profile.emails[0].value,
-        image: profile.photos[0].value,
+        fullName: profile.displayName || "Google User",
+        email,
+        image,
       });
     }
 
-    // Generate JWT for your app
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
     done(null, { user, token });
   } catch (err) {
     done(err, null);
   }
 }));
+
 
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_ID,
@@ -36,12 +41,20 @@ passport.use(new GitHubStrategy({
   callbackURL: "https://health-sure-backend.onrender.com/auth/github/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    let user = await User.findOne({ where: { email: profile.emails[0].value } });
+    const email = profile.emails && profile.emails.length > 0
+      ? profile.emails[0].value
+      : `${profile.username}@github-oauth.fake`; // fallback if no public email
+
+    const image = profile.photos && profile.photos.length > 0
+      ? profile.photos[0].value
+      : null;
+
+    let user = await User.findOne({ where: { email } });
     if (!user) {
       user = await User.create({
-        fullName: profile.username,
-        email: profile.emails[0].value,
-        image: profile.photos[0].value,
+        fullName: profile.displayName || profile.username,
+        email,
+        image,
       });
     }
 
@@ -51,3 +64,4 @@ passport.use(new GitHubStrategy({
     done(err, null);
   }
 }));
+
