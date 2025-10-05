@@ -143,29 +143,49 @@ router.post("/log-in", loginLimiter, async (req, res) => {
 
 
 // User Log out Route
-router.post("/logout",async(req,res)=>{
+router.post("/logout", async (req, res) => {
   const authHeader = req.headers.authorization;
-  if(!authHeader || !authHeader.startsWith("Bearer ")){
-    return res.status(400).json({ message: "No token provided" });
-  }
-  const token = authHeader.split(" ")[1];
-  try{
-    const decoded = jwt.decode(token);
-    if (!decoded || !decoded.exp){
-      return res.status(400).json({ message: "Invalid token" });
+
+  try {
+    // 1️⃣ If user logged in with JWT (email/password OR social login with JWT issued)
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.decode(token);
+
+      if (!decoded || !decoded.exp) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+
+      // Calculate remaining TTL
+      const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+      if (ttl > 0) {
+        await redis.set(`blacklist:${token}`, "revoked", "EX", ttl);
+      }
+
+      return res.json({ message: "Logout successful (JWT user)" });
     }
 
-    const ttl = decoded.exp - Math.floor(Date.now()/1000);
-    if (ttl > 0){
-      await redis.set(`blacklist:${token}`, "revoked", "EX", ttl);
+    // 2️⃣ If user logged in with Passport session (Google/GitHub)
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      req.logout((err) => {
+        if (err) {
+          console.error("Passport logout error:", err);
+          return res.status(500).json({ message: "Server error during logout" });
+        }
+        req.session.destroy(() => {
+          res.clearCookie("connect.sid"); // clear session cookie
+          return res.json({ message: "Logout successful (OAuth user)" });
+        });
+      });
+    } else {
+      return res.status(400).json({ message: "No active session or token" });
     }
-
-     res.json({ message: "Logout successful" });
-  } catch (err){
-     console.error("Logout error:", err);
+  } catch (err) {
+    console.error("Logout error:", err);
     res.status(500).json({ message: "Server error during logout" });
   }
-})
+});
+
 
 // Google login route
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
