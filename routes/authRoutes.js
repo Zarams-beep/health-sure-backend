@@ -174,7 +174,7 @@ router.get("/google/callback",
   passport.authenticate("google", { session: false }),
   (req, res) => {
     // Redirect to frontend with token
-    res.redirect(`https://your-frontend.com/dashboard?token=${req.user.token}`);
+   res.redirect(`https://health-sure-nine.vercel.app/dashboard/${req.user.user.id}/landing-page?token=${req.user.token}`);
   }
 );
 
@@ -185,7 +185,7 @@ router.get("/github", passport.authenticate("github", { scope: ["user:email"] })
 router.get("/github/callback",
   passport.authenticate("github", { session: false }),
   (req, res) => {
-    res.redirect(`https://your-frontend.com/dashboard?token=${req.user.token}`);
+   res.redirect(`https://health-sure-nine.vercel.app/dashboard/${req.user.user.id}/landing-page?token=${req.user.token}`);
   }
 );
 export default router;
