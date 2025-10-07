@@ -1,10 +1,10 @@
 import express from "express";
 const router = express.Router({ mergeParams: true });
 
-// 🛡️ Middleware
+// Middleware
 import { protect } from "../middleware/authmiddleware.js";
 
-// 🧠 Controllers
+// Controllers
 import { updateBasicInfo, getBasicInfo } from "../controller/basicInfoController.js";
 import { updateHealthStatus, getHealthStatus } from "../controller/healthStatusController.js";
 import { updateMedicalHistory, getMedicalHistory } from "../controller/medicalHistoryController.js";
@@ -12,10 +12,10 @@ import { updateTreatmentInfo, getTreatmentInfo } from "../controller/treatmentIn
 import { updateLabResults, getLabResults } from "../controller/labResultController.js";
 import { updateNotes, getNotes } from "../controller/noteController.js";
 
-// 🔐 Apply authentication to all routes
+// Apply authentication to all routes
 router.use(protect);
 
-// 📋 Health Profile Management Endpoints
+// Health Profile Management Endpoints
 
 // --- Basic Info ---
 router.post("/basic-info", updateBasicInfo);    // Create or update basic info
