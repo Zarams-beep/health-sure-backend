@@ -4,9 +4,9 @@ import cors from "cors";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { connectDB, sequelize } from "./config/db.js";
+import chatRoutes from "./routes/chat.js";
 import authRoutes from "./routes/authRoutes.js";
 import healthEditRoutes from "./routes/healthEditRoutes.js";
-
 // Setup environment
 dotenv.config();
 
@@ -50,6 +50,7 @@ app.use("/uploads", express.static(join(__dirname, "uploads")));
 // Routes
 app.use("/auth", authRoutes);
 app.use("/dashboard/:userId/manage-health", healthEditRoutes);
+app.use("/chat",chatRoutes)
 
 // DB Connection
 connectDB();
