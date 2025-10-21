@@ -16,7 +16,6 @@ router.post("/chat", async (req, res) => {
       return res.status(400).json({ success: false, error: "Missing question" });
     }
 
-    // ✅ Initialize Ollama model
     const ollamaModel = new ChatOllama({
       model: "gemma3",
       baseUrl: "http://localhost:11434",
