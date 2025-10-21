@@ -4,7 +4,7 @@ import cors from "cors";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { connectDB, sequelize } from "./config/db.js";
-import chatRoutes from "./routes/chat.js";
+import chatRoutes from "./routes/chatRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import healthEditRoutes from "./routes/healthEditRoutes.js";
 // Setup environment
