@@ -18,7 +18,7 @@ router.post("/chat", async (req, res) => {
 
     const ollamaModel = new ChatOllama({
       model: "gemma3",
-      baseUrl: "http://localhost:11434",
+       baseUrl: process.env.OLLAMA_URL,
       stream: false,
     });
 
