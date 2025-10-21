@@ -50,7 +50,7 @@ app.use("/uploads", express.static(join(__dirname, "uploads")));
 // Routes
 app.use("/auth", authRoutes);
 app.use("/dashboard/:userId/manage-health", healthEditRoutes);
-app.use("/chat",chatRoutes)
+app.use("/",chatRoutes)
 
 // DB Connection
 connectDB();
