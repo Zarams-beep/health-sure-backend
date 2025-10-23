@@ -19,7 +19,7 @@
     "sequelize",
     "api"
   ],
-  "author": "Your Name",
+  "author": "Chizaram",
   "license": "Chizaram",
   "dependencies": {
     "@langchain/community": "^1.0.0",
