@@ -60,6 +60,10 @@ sequelize
   .catch((err) => console.error("❌ Error syncing tables:", err));
 
 // Error Handlers
+
+app.use((err,req,res,next)=>{
+  res.status(404).json({})
+})
 app.use((err, req, res, next) => {
   console.error("Global Error:", err);
   res.status(500).json({ error: "Internal server error" });
