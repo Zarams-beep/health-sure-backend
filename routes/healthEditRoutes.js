@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router({ mergeParams: true });
 
 // Middleware
-import { protect } from "../middleware/authmiddleware.js";
+import authMiddleware from "../middleware/authmiddleware.js";
 
 // Controllers
 import { updateBasicInfo, getBasicInfo } from "../controller/basicInfoController.js";
@@ -13,7 +13,7 @@ import { updateLabResults, getLabResults } from "../controller/labResultControll
 import { updateNotes, getNotes } from "../controller/noteController.js";
 
 // Apply authentication to all routes
-router.use(protect);
+router.use(authMiddleware);
 
 // Health Profile Management Endpoints
 

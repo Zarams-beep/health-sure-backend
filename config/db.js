@@ -1,15 +1,13 @@
 import { Sequelize } from "sequelize";
-import dotenv from "dotenv";
-
-dotenv.config();
+import config from "./index.js";
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
+  config.DB_NAME,
+  config.DB_USER,
+  config.DB_PASSWORD,
   {
-    host: `${process.env.DB_HOST}.singapore-postgres.render.com`,
-    port: process.env.DB_PORT || 5432,
+    host: `${config.DB_HOST}.singapore-postgres.render.com`,
+    port: config.DB_PORT,
     dialect: "postgres",
     define: {  // 👈 Added critical case-sensitivity config
       freezeTableName: true,
@@ -23,7 +21,8 @@ const sequelize = new Sequelize(
         rejectUnauthorized: false,
       },
     },
-    logging: false,
+    logging:false,
+   // logging: (msg) => console.log(msg),
   }
 );
 
@@ -38,7 +37,6 @@ const connectDB = async () => {
        AND table_name = 'Users'`
     );
     
-    console.log("✅ PostgreSQL Connected. Users table exists:", result.length > 0);
   } catch (error) {
     console.error("❌ Connection Failed:", error);
     process.exit(1);

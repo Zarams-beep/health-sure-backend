@@ -1,5 +1,4 @@
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -7,8 +6,7 @@ import { connectDB, sequelize } from "./config/db.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import healthEditRoutes from "./routes/healthEditRoutes.js";
-// Setup environment
-dotenv.config();
+import config from "./config/index.js";
 
 const app = express();
 
@@ -16,10 +14,7 @@ const app = express();
 // This makes sure only your frontend apps (localhost:3000 during dev, and your deployed Vercel site) can talk to the backend.
 const corsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'https://health-sure-nine.vercel.app'
-    ];
+    const allowedOrigins = config.TOTAL_URL
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -83,5 +78,5 @@ app.get("/", (req, res) => {
 });
 
 // Server
-const PORT = process.env.PORT || 5000;
+const PORT = config.PORT;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

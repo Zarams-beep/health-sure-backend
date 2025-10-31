@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/db.js";
+import bcrypt from "bcrypt";
+
 const User = sequelize.define("User", {
     id: {
         type: DataTypes.UUID,
@@ -26,8 +28,52 @@ const User = sequelize.define("User", {
 }, { 
     timestamps: true,
     modelName: 'User',
-    tableName: 'Users'
+    tableName: 'Users',
+    hooks:{
+        beforeCreate: async (user) =>{
+            if(user.fullName) user.fullName = useReducer.fullName.toLowerCase();
+            user.email = user.email.toLowerCase();
+
+            if (user.password){
+                const salt = await bcrypt.genSalt(10);
+                user.password = await bcrypt.hash(user.password, salt);
+            }
+        },
+        beforeUpdate: async (user) =>{
+            if (user.changed("fullName")){
+                user.fullName = user.fullName.toLowerCase();
+            }
+            if (user.changed("email")) {
+          user.email = user.email.toLowerCase();
+        }
+        if (user.password) {
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        } 
+        }
+    }, 
+    indexes:[
+        {
+            unique: true,
+            fields:["id"],
+        },
+        {
+            unique:true,
+            fields:["fullName"],
+        },
+        {
+         unique:true,
+         fields:["email"],
+        }
+       
+        
+    ]
 });
+
+User.prototype.verifyPassword = async function (password){
+    return await bcrypt.compare(password, this.password);
+};
+
 
 // associates
 User.associate = (models) => {

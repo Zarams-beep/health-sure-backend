@@ -3,11 +3,12 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import User from "../models/user.js"; // your user model
 import jwt from "jsonwebtoken";
+import config from "./index.js";
 
 passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientID: config.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "https://health-sure-backend.onrender.com/auth/google/callback"
+  callbackURL: config.CALLBACK_URL_GOOGLE
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const email = profile.emails && profile.emails.length > 0 
@@ -27,7 +28,7 @@ passport.use(new GoogleStrategy({
       });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user.id }, config.JWT_SECRET, { expiresIn: "1h" });
     done(null, { user, token });
   } catch (err) {
     done(err, null);
@@ -38,7 +39,7 @@ passport.use(new GoogleStrategy({
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_ID,
   clientSecret: process.env.GITHUB_SECRET,
-  callbackURL: "https://health-sure-backend.onrender.com/auth/github/callback"
+  callbackURL: config.CALLBACK_URL_GITHUB
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const email = profile.emails && profile.emails.length > 0
@@ -58,7 +59,7 @@ passport.use(new GitHubStrategy({
       });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user.id }, config.JWT_SECRET, { expiresIn: "1h" });
     done(null, { user, token });
   } catch (err) {
     done(err, null);
