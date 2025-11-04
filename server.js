@@ -51,8 +51,8 @@ app.use("/",chatRoutes)
 connectDB();
 sequelize
   .sync({ alter: true })
-  .then(() => console.log("✅ Tables synchronized"))
-  .catch((err) => console.error("❌ Error syncing tables:", err));
+  .then(() => console.log("Tables synchronized"))
+  .catch((err) => console.error("Error syncing tables:", err));
 
 // Error Handlers
 
