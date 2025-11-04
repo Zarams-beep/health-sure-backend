@@ -1,7 +1,7 @@
+// utils/Logger.js
 import pino from "pino";
-import path from "path";
 import fs from "fs";
-import PinoRotate from "pino-daily-rotate-file";
+import path from "path";
 
 // Ensure log folder exists
 const logDir = path.resolve("logs");
@@ -9,23 +9,29 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
-// Configure log rotation
-const transport = PinoRotate({
-  filename: path.join(logDir, "app-%DATE%.log"),
-  datePattern: "YYYY-MM-DD",
-  zippedArchive: true,
-  maxSize: "10m",
-  maxFiles: "14d", // keep logs for 14 days
+const logFile = path.join(logDir, "app.log");
+
+// Simple logger setup — NO rotation, NO crash
+const transport = pino.transport({
+  targets: [
+    {
+      target: "pino/file",
+      options: { destination: logFile, mkdir: true },
+      level: "info",
+    },
+    {
+      target: "pino-pretty",
+      options: { colorize: true },
+      level: "debug",
+    },
+  ],
 });
 
 const logger = pino(
   {
     level: process.env.NODE_ENV === "production" ? "info" : "debug",
-    formatters: {
-      level: (label) => ({ level: label }),
-    },
-    timestamp: pino.stdTimeFunctions.isoTime,
     base: null,
+    timestamp: pino.stdTimeFunctions.isoTime,
   },
   transport
 );

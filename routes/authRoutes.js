@@ -3,13 +3,14 @@ import { loginUser, registerUser, userProfile } from "../controller/authControll
 import { registrationValidator, loginValidator } from "../utils/Validators.js";
 import validationMiddleware from "../middleware/validationMiddleware.js";
 import authMiddleware from "../middleware/authmiddleware.js";
-import upload from "../middleware/upload.js";
+import { uploadTemp, uploadPermanent } from "../middleware/upload.js";
+
 
 const router = express.Router();
 
 router.post(
   "/register",
-  upload.single("image"),
+  uploadTemp.single("image"),
   validationMiddleware(registrationValidator),
   registerUser
 );

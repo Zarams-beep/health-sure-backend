@@ -1,5 +1,7 @@
 import AppError from "../utils/AppError.js";
-import { createUser, logUserIntoApp, getUserProfile } from "../services/userService.js";
+import { createUser } from "../services/users/createUser.js";
+import { logUserIntoApp } from "../services/users/logs.js";
+import { getUserProfile } from "../services/users/profile.js";
 
 async function registerUser (req,res){
     try{

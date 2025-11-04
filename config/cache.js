@@ -7,11 +7,11 @@ const redis = new IORedis(config.REDIS_URL);
 const TTL = config.REDIS_TTL;
 
 redis.on("connect", () => {
-  console.log("✅ Connected to Redis");
+  console.log("Connected to Redis");
 });
 
 redis.on("error", (err) => {
-  console.error("❌ Redis error:", err);
+  console.error("Redis error:", err);
 });
 
 
