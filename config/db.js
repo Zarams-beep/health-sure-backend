@@ -2,6 +2,7 @@ import { Sequelize } from "sequelize";
 import config from "./index.js";
 import process from "node:process";
 
+// Use DATABASE_URL if available, otherwise fall back to individual variables
 const sequelize = config.DATABASE_URL
   ? new Sequelize(config.DATABASE_URL, {
       dialect: "postgres",
@@ -10,7 +11,7 @@ const sequelize = config.DATABASE_URL
       dialectOptions: {
         ssl: {
           require: true,
-          rejectUnauthorized: false // Required for cloud databases
+          rejectUnauthorized: false // Required for cloud databases like Neon
         }
       },
 
@@ -37,14 +38,6 @@ const sequelize = config.DATABASE_URL
         port: config.DB_PORT,
         logging: config.ENVIRONMENT === "development" ? console.log : false,
 
-        // ADD SSL CONFIG HERE TOO
-        dialectOptions: {
-          ssl: {
-            require: true,
-            rejectUnauthorized: false
-          }
-        },
-
         define: {
           freezeTableName: true,
           underscored: false,
@@ -60,32 +53,48 @@ const sequelize = config.DATABASE_URL
       }
     );
 
-const connectDB = async (retries = 5) => {
+const connectDB = async () => {
   try {
-    await sequelize.authenticate();
-    console.log('✅ Database Connected Successfully');
+    const dbName = config.DATABASE_URL 
+      ? new URL(config.DATABASE_URL).pathname.slice(1) 
+      : config.DB_NAME;
     
-    // Verify connection with case-sensitive query
-    const [result] = await sequelize.query(
+    console.log(` Connecting to PostgreSQL database: ${dbName}`);
+    
+    await sequelize.authenticate();
+    console.log(" Database connection established");
+    
+    // Sync models (only alter in development, never force)
+    if (config.ENVIRONMENT === "development") {
+      await sequelize.sync({ alter: true });
+      console.log(" Database tables synchronized");
+    }
+    
+    // Log active tables
+    const tables = await sequelize.query(
       `SELECT table_name FROM information_schema.tables 
-       WHERE table_schema = 'public' 
-       AND table_name = 'Users'`
+       WHERE table_schema = 'public'`,
+      { type: sequelize.QueryTypes.SELECT }
     );
     
-    if (result.length > 0) {
-      console.log('✅ Users table found');
-    }
+    console.log(` Active tables: ${tables.map(t => t.table_name).join(", ")}`);
     
   } catch (error) {
-    console.error(`❌ Connection Failed (${retries} retries left):`, error.message);
+    console.error(" Database connection failed:", error.message);
     
-    if (retries > 0) {
-      console.log('⏳ Retrying in 5 seconds...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      return connectDB(retries - 1);
+    // error messages
+    if (error.message.includes("does not exist")) {
+      console.error(`
+💡 Database doesn't exist. Check your connection string or create it.
+      `);
+    } else if (error.message.includes("password authentication failed")) {
+      console.error(" Check your database credentials");
+    } else if (error.message.includes("Connection refused") || error.message.includes("ECONNREFUSED")) {
+      console.error(" Make sure your database is accessible");
+    } else if (error.message.includes("getaddrinfo")) {
+      console.error(" Check your database host/connection string");
     }
     
-    console.error('❌ All connection attempts failed');
     process.exit(1);
   }
 };
