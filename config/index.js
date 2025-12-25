@@ -31,4 +31,5 @@ export default {
   TYPICODE_API_URL:
   process.env.TYPICODE_API_URL || "https://jsonplaceholder.typicode.com",
   TYPICODE_BASE_API_KEY: process.env.TYPICODE_BASE_API_KEY || "",
+  DATABASE_URL: process.env.DATABASE_URL || "",
 };
