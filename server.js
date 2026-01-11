@@ -10,34 +10,27 @@ import config from "./config/index.js";
 
 const app = express();
 
-// In server.js - Update CORS config Cross-Origin Resource Sharing
-// This makes sure only your frontend apps (localhost:3000 during dev, and your deployed Vercel site) can talk to the backend.
+// FIXED CORS Configuration
 const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = config.TOTAL_URL
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'https://health-sure-nine.vercel.app',
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  preflightContinue: false,
   optionsSuccessStatus: 204
 };
 
-// Apply to all routes
+// Apply CORS before routes
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Handle preflight
 
 // Directory setup
-// Because ES modules don’t have __dirname by default, this helps figure out the current folder path.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Middleware = functions that run before your routes (like body parsing, file serving, etc.).
+// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/uploads", express.static(join(__dirname, "uploads")));
@@ -45,7 +38,7 @@ app.use("/uploads", express.static(join(__dirname, "uploads")));
 // Routes
 app.use("/auth", authRoutes);
 app.use("/dashboard/:userId/manage-health", healthEditRoutes);
-app.use("/",chatRoutes)
+app.use("/", chatRoutes);
 
 // DB Connection
 connectDB();
@@ -55,10 +48,10 @@ sequelize
   .catch((err) => console.error("Error syncing tables:", err));
 
 // Error Handlers
+app.use((req, res, next) => {
+  res.status(404).json({ error: "Route not found" });
+});
 
-app.use((err,req,res,next)=>{
-  res.status(404).json({})
-})
 app.use((err, req, res, next) => {
   console.error("Global Error:", err);
   res.status(500).json({ error: "Internal server error" });
@@ -79,4 +72,4 @@ app.get("/", (req, res) => {
 
 // Server
 const PORT = config.PORT;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
