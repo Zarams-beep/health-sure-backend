@@ -1,36 +1,29 @@
 import { z } from "zod";
 
-// 🟢 Registration Validator
-export const registrationValidator = z
-  .object({
-    fullName: z
-      .string({
-        required_error: "fullName is required",
-      })
-      .min(3, "fullName must be at least 3 characters long"),
+// Registration Validator - REMOVE confirmPassword
+export const registrationValidator = z.object({
+  fullName: z
+    .string({
+      required_error: "fullName is required",
+    })
+    .min(3, "fullName must be at least 3 characters long"),
 
-    email: z
-      .string({
-        required_error: "Email is required",
-      })
-      .email("Invalid email format"),
+  email: z
+    .string({
+      required_error: "Email is required",
+    })
+    .email("Invalid email format"), // Fixed typo
 
-    password: z
-      .string({
-        required_error: "Password is required",
-      })
-      .min(6, "Password must be at least 6 characters long"),
+  password: z
+    .string({
+      required_error: "Password is required",
+    })
+    .min(6, "Password must be at least 6 characters long"),
+  
+  image: z.any().optional(),
+});
 
-    confirmPassword: z.string({
-      required_error: "Password confirmation is required",
-    }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Password confirmation does not match password",
-    path: ["confirmPassword"],
-  });
-
-// 🟡 Login Validator
+// Login Validator
 export const loginValidator = z.object({
   email: z
     .string({
