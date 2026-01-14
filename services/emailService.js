@@ -6,7 +6,7 @@ import ejs from "ejs";
 import logger from "../utils/Logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 const transporter = nodemailer.createTransport({
     host:config.SMTP_HOST,
