@@ -31,7 +31,7 @@ const User = sequelize.define("User", {
     tableName: 'Users',
     hooks:{
         beforeCreate: async (user) =>{
-            if(user.fullName) user.fullName = useReducer.fullName.toLowerCase();
+            if(user.fullName) user.fullName = user.fullName.toLowerCase();
             user.email = user.email.toLowerCase();
 
             if (user.password){
