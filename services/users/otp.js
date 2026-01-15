@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import cache from "../../config/cache";
+import cache from "../../config/cache.js";
 
 /**
  * Generate a 6-digit OTP
