@@ -1,4 +1,4 @@
-import User from "../models/user.js";
+import User from "../../models/user.js";
 import utils from "../../utils/Auth.js";
 import AppError from "../../utils/AppError.js";
 
