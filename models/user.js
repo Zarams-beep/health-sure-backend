@@ -27,13 +27,11 @@ const User = sequelize.define("User", {
     }
 }, { 
     timestamps: true,
-    modelName: 'User',
-    tableName: 'Users',
     hooks:{
         beforeCreate: async (user) =>{
-            if(user.fullName) user.fullName = user.fullName.toLowerCase();
+            user.fullName = user.fullName.toLowerCase();
             user.email = user.email.toLowerCase();
-
+            
             if (user.password){
                 const salt = await bcrypt.genSalt(10);
                 user.password = await bcrypt.hash(user.password, salt);
@@ -46,7 +44,7 @@ const User = sequelize.define("User", {
             if (user.changed("email")) {
           user.email = user.email.toLowerCase();
         }
-        if (user.password) {
+        if (user.changed("password")) {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(user.password, salt);
         } 
@@ -65,9 +63,9 @@ const User = sequelize.define("User", {
          unique:true,
          fields:["email"],
         }
-       
-        
-    ]
+    ],
+modelName: 'User',
+    tableName: 'Users',
 });
 
 User.prototype.verifyPassword = async function (password){

@@ -44,7 +44,7 @@ passport.use(new GitHubStrategy({
   try {
     const email = profile.emails && profile.emails.length > 0
       ? profile.emails[0].value
-      : `${profile.username}@github-oauth.fake`; // fallback if no public email
+      : `${profile.fullName}@github-oauth.fake`; // fallback if no public email
 
     const image = profile.photos && profile.photos.length > 0
       ? profile.photos[0].value
@@ -53,7 +53,7 @@ passport.use(new GitHubStrategy({
     let user = await User.findOne({ where: { email } });
     if (!user) {
       user = await User.create({
-        fullName: profile.displayName || profile.username,
+        fullName: profile.displayName || profile.fullName,
         email,
         image,
       });

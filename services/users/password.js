@@ -137,7 +137,7 @@ async function sendPasswordChangeNotification(user) {
      date: new Date().toLocaleString(),});
 
      const text = `Hello ${
-    user.username
+    user.fullName
   },\n\nYour password was changed successfully on ${new Date().toLocaleString()}.\n\nIf you did not make this change, please contact support immediately.`;
 
   await sendEmail(user.email, "Password Changed Successfully", html, text);

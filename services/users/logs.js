@@ -51,7 +51,7 @@ async function sendLoginNotification(user){
   });
 
   const text = `Hello ${
-    user.username
+    user.fullName
   },\n\nA login attempt was made o your account at ${new Date().toLocaleString()}.\n\nIf you did not make this attempt, please contact support immediately.`;
 
   await sendEmail(user.email, "Login Attempt", html, text);
