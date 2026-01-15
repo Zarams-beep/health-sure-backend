@@ -1,7 +1,5 @@
 import express from "express";
 import cors from "cors";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 import { connectDB, sequelize } from "./config/db.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -23,16 +21,12 @@ const corsOptions = {
   optionsSuccessStatus: 204
 };
 
-app.use(cors(corsOptions));
-
-// Directory setup
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Middleware
-app.use(express.urlencoded({ extended: true }));
+//middlewares
 app.use(express.json());
-app.use("/uploads", express.static(join(__dirname, "uploads")));
+app.use(express.urlencoded({ extended: true }));
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+app.use('/uploads', express.static('uploads'));
 
 // Root route FIRST
 app.get("/", (req, res) => {
@@ -59,7 +53,16 @@ app.use((req, res, next) => {
 // Error handler comes AFTER 404
 app.use((err, req, res, next) => {
   console.error("Global Error:", err);
-  res.status(500).json({ error: "Internal server error" });
+  
+  // Use the error's status code if available, otherwise 500
+  const statusCode = err.statusCode || err.status || 500;
+  const message = err.message || "Internal server error";
+  
+  res.status(statusCode).json({ 
+    success: false,
+    error: message,
+    ...(config.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
 // DB Connection
