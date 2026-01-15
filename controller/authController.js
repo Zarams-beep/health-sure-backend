@@ -1,6 +1,5 @@
 import AppError from "../utils/AppError.js";
 import { createUser } from "../services/users/createUser.js";
-import { getUserProfile } from "../services/users/profile.js";
 import { logUserIntoApp, logUserOutOfApp} from "../services/users/logs.js";
 import { getUserProfile, updateUserProfile} from "../services/users/profile.js";
 import { changeUserPassword } from "../services/users/changePassword.js";
