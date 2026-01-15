@@ -30,7 +30,6 @@ export async function logUserIntoApp(loginCredentials) {
   };
 }
 
-// Log a user out (optional token invalidation)
 export async function logUserOutOfApp(userId) {
   if (cache) {
     await cache.del(`userTokens:${userId}`);
