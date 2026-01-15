@@ -5,7 +5,7 @@ import { getUserProfile, updateUserProfile} from "../services/users/profile.js";
 import { changeUserPassword } from "../services/users/changePassword.js";
 import { generateOTP, storeOTP, getOTP, deleteOTP } from "../services/users/otp.js";
 import { sendEmail, renderTemplate } from "../services/emailService.js";
-import User from "../models/Users.js";
+import User from "../models/user.js";
 import { Op } from "sequelize";
 
 
