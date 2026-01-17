@@ -18,7 +18,11 @@ export async function logUserIntoApp(loginCredentials) {
   const token = await utils.generateToken(user);
   const refreshToken = await utils.generateRefreshToken(user, token);
 
-  await sendLoginNotification(user);
+  try {
+    await sendLoginNotification(user);
+  } catch (error) {
+    console.error("Failed to send login notification:", error.message);
+  }
 
   return {
     userId: user.id,
@@ -38,21 +42,25 @@ export async function logUserOutOfApp(userId) {
 }
 
 
-async function sendLoginNotification(user){
-  const html = await renderTemplate("login-notification",{
-    fullName: user.fullName,
-    email: user.email,
-     loginTime: new Date().toLocaleString("en-US", {
-      dateStyle: "full",
-      timeStyle: "short",
-    }),
-    location: "Chizaram City",
-    device: "Backend Device",
-  });
+async function sendLoginNotification(user) {
+  try {
+    const html = await renderTemplate("login-notification", {
+      fullName: user.fullName,
+      email: user.email,
+      loginTime: new Date().toLocaleString("en-US", {
+        dateStyle: "full",
+        timeStyle: "short",
+      }),
+      location: "Nigeria",
+      device: "Web Browser",
+    });
 
-  const text = `Hello ${
-    user.fullName
-  },\n\nA login attempt was made o your account at ${new Date().toLocaleString()}.\n\nIf you did not make this attempt, please contact support immediately.`;
+    const text = `Hello ${user.fullName},\n\nA login attempt was made on your account at ${new Date().toLocaleString()}.\n\nIf you did not make this attempt, please contact support immediately.`;
 
-  await sendEmail(user.email, "Login Attempt", html, text);
+    await sendEmail(user.email, "Login Notification", html, text);
+    console.log("Login notification sent successfully");
+  } catch (error) {
+    // Don't throw - just log
+    console.error("Failed to send login notification:", error.message);
+  }
 }
