@@ -18,11 +18,11 @@ export async function logUserIntoApp(loginCredentials) {
   const token = await utils.generateToken(user);
   const refreshToken = await utils.generateRefreshToken(user, token);
 
-  /*try {
+  try {
     await sendLoginNotification(user);
   } catch (error) {
     console.error("Failed to send login notification:", error.message);
-  } */
+  }
 
   return {
     userId: user.id,
@@ -42,7 +42,7 @@ export async function logUserOutOfApp(userId) {
 }
 
 
-/*async function sendLoginNotification(user) {
+async function sendLoginNotification(user) {
   try {
     const html = await renderTemplate("login-notification", {
       fullName: user.fullName,
@@ -63,4 +63,4 @@ export async function logUserOutOfApp(userId) {
     // Don't throw - just log
     console.error("Failed to send login notification:", error.message);
   }
-} */
+}
